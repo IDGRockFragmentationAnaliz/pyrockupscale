@@ -29,19 +29,22 @@ HF_MODELS = {
 
 
 class RealESRGAN:
-    def __init__(self, device, scale=4):
+    def __init__(self, device=None, scale=4, model_path=None):
+        if device is None:
+            device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         self.device = device
         self.scale = scale
         self.model = RRDBNet(
             num_in_ch=3, num_out_ch=3, num_feat=64, 
             num_block=23, num_grow_ch=32, scale=scale
         )
-
+        if model_path is not None:
+            self.load_weights(model_path)
 
     def __call__(self, *args, **kwargs):
         return self.predict(*args, **kwargs)
 
-    def load_weights(self, model_path, download=True):
+    def load_weights(self, model_path, download=False):
         if not os.path.exists(model_path) and download:
             assert self.scale in [2,4,8], 'You can download models only with scales: 2, 4, 8'
             config = HF_MODELS[self.scale]
